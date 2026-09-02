@@ -12,4 +12,8 @@ The optional local microphone captures short PCM chunks and applies local VAD to
 
 The model requests tools through the provider's structured function-call output. `JarvisOrchestrator` limits execution to six iterations and only routes calls through `ToolRegistry`. Tools declare their JSON schema, permission level, confirmation requirement, and executor. The first tools are calculation, current time, and configured application aliases. No LLM-produced shell command can be executed.
 
+## Computer control (Phase 4)
+
+`ComputerController` keeps keyboard and pointer operations behind a portable contract, with a Windows implementation running PyAutoGUI operations in worker threads. Window control and browser navigation are separate modules. All input controls are low-risk registered tools; browser navigation only accepts HTTP(S) URLs. The MongoDB connection factory is lazy and will underpin persistent memory in Phase 5 without preventing offline startup.
+
 Security-sensitive system actions are intentionally not introduced in Phase 1.

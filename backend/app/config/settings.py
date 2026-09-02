@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     debug: bool = False
     log_level: str = "INFO"
     api_prefix: str = "/api/v1"
-    database_url: str = "sqlite:///../data/jarvis.db"
+    mongodb_uri: str = "mongodb://localhost:27017"
+    mongodb_database: str = "jarvis"
     groq_api_key: str | None = Field(default=None, repr=False)
     groq_model: str = "llama-3.3-70b-versatile"
     groq_stt_model: str = "whisper-large-v3-turbo"

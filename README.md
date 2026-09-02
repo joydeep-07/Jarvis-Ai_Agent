@@ -36,6 +36,10 @@ The React/Electron desktop client is scheduled for Phase 12; the existing fronte
 
 JARVIS can use structured tools for arithmetic and current time. It can also launch applications only through aliases in `APPLICATION_COMMANDS`; it never accepts raw commands or paths from the model. Configure aliases in `backend/.env`, quoting executable paths that contain spaces, for example `APPLICATION_COMMANDS=chrome="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";vscode="C:\\Users\\you\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"`.
 
+## Computer control and MongoDB (Phase 4)
+
+Windows-focused keyboard, mouse, window, on-demand screenshot, and default-browser tools are registered as explicit functions. PyAutoGUI's fail-safe remains enabled: moving the pointer to the upper-left corner stops automation. Screenshots are discarded immediately in this phase. The project now uses MongoDB configuration (`MONGODB_URI` and `MONGODB_DATABASE`) in `backend/.env`; start a local MongoDB service or replace the URI with your managed deployment before Phase 5 persistent memory.
+
 ## Verification
 
 From `backend`, run `pytest` and `ruff check app tests`.

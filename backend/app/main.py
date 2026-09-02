@@ -12,7 +12,14 @@ from app.core.orchestrator import JarvisOrchestrator
 from app.memory import MemoryManager
 from app.services.time_service import TimeService, time_tool
 from app.tools.calculator import Calculator, calculator_tool
+from app.tools.browser.browser import BrowserController
+from app.tools.browser.navigation import browser_tools
 from app.tools.computer.applications import ApplicationLauncher, application_tool
+from app.tools.computer.keyboard import keyboard_tools
+from app.tools.computer.mouse import mouse_tools
+from app.tools.computer.windows import WindowsComputerController
+from app.tools.computer.windows_manager import WindowsWindowManager
+from app.tools.computer.windows_tools import window_tools
 from app.tools.registry import ToolRegistry
 from app.voice.microphone import MicrophoneRecorder
 from app.voice.speech_to_text import GroqSpeechToText
@@ -48,6 +55,14 @@ def create_app() -> FastAPI:
     app.state.tools.register(calculator_tool(Calculator()))
     app.state.tools.register(time_tool(TimeService()))
     app.state.tools.register(application_tool(ApplicationLauncher(settings)))
+    computer = WindowsComputerController()
+    for tool in [
+        *keyboard_tools(computer),
+        *mouse_tools(computer),
+        *window_tools(WindowsWindowManager()),
+        *browser_tools(BrowserController()),
+    ]:
+        app.state.tools.register(tool)
     app.state.orchestrator = JarvisOrchestrator(
         app.state.llm,
         app.state.memory,
