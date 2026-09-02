@@ -4,12 +4,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.ai import GroqClient
-from app.api import command_router, health_router, websocket_router
+from app.api import command_router, health_router, voice_router, websocket_router
 from app.config import get_settings
 from app.core.event_bus import EventBus
 from app.core.lifecycle import lifespan
 from app.core.orchestrator import JarvisOrchestrator
 from app.memory import MemoryManager
+from app.voice.microphone import MicrophoneRecorder
+from app.voice.speech_to_text import GroqSpeechToText
+from app.voice.text_to_speech import GroqTextToSpeech
+from app.voice.vad import VoiceActivityDetector
+from app.voice.voice_manager import VoiceManager
 
 
 def create_app() -> FastAPI:
@@ -26,9 +31,19 @@ def create_app() -> FastAPI:
     app.state.event_bus = EventBus()
     app.state.memory = MemoryManager()
     app.state.llm = GroqClient(settings)
+    app.state.speech_to_text = GroqSpeechToText(settings)
+    app.state.text_to_speech = GroqTextToSpeech(settings)
+    app.state.voice_manager = VoiceManager(
+        settings,
+        app.state.event_bus,
+        app.state.speech_to_text,
+        app.state.text_to_speech,
+        MicrophoneRecorder(settings.voice_sample_rate, VoiceActivityDetector()),
+    )
     app.state.orchestrator = JarvisOrchestrator(app.state.llm, app.state.memory, app.state.event_bus)
     app.include_router(health_router, prefix=settings.api_prefix)
     app.include_router(command_router, prefix=settings.api_prefix)
+    app.include_router(voice_router, prefix=settings.api_prefix)
     app.include_router(websocket_router)
     return app
 

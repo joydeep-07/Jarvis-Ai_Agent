@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     max_agent_iterations: int = 6
     voice_enabled: bool = False
     wake_word_enabled: bool = False
+    wake_word: str = "jarvis"
+    voice_sample_rate: int = 16_000
+    voice_silence_seconds: float = 1.2
+    voice_max_recording_seconds: float = 30.0
+    voice_store_recordings: bool = False
+    tts_voice: str = "diana"
+    tts_speed: float = 1.0
     data_dir: Path = Path("../data")
 
 

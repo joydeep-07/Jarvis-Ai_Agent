@@ -4,4 +4,8 @@ Phase 1 uses a thin FastAPI composition root. Requests enter the API router, pas
 
 Future capabilities remain isolated behind provider and tool boundaries: voice providers, tool registry, persistent memory, vision, scheduling, and platform-specific computer controllers will not be placed in `main.py`.
 
+## Voice pipeline (Phase 2)
+
+The optional local microphone captures short PCM chunks and applies local VAD to find the phrase boundary. Audio is retained only in memory, then sent to the selected `SpeechToTextProvider`. `VoiceManager` emits lifecycle events, optionally verifies/removes the wake word, and exposes `TextToSpeechProvider` output as WAV bytes. The initial providers use Groq-compatible speech endpoints; replacing either provider does not affect the API or orchestrator.
+
 Security-sensitive system actions are intentionally not introduced in Phase 1.
