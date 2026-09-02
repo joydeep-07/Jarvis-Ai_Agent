@@ -10,6 +10,10 @@ from app.core.event_bus import EventBus
 from app.core.lifecycle import lifespan
 from app.core.orchestrator import JarvisOrchestrator
 from app.memory import MemoryManager
+from app.services.time_service import TimeService, time_tool
+from app.tools.calculator import Calculator, calculator_tool
+from app.tools.computer.applications import ApplicationLauncher, application_tool
+from app.tools.registry import ToolRegistry
 from app.voice.microphone import MicrophoneRecorder
 from app.voice.speech_to_text import GroqSpeechToText
 from app.voice.text_to_speech import GroqTextToSpeech
@@ -40,7 +44,17 @@ def create_app() -> FastAPI:
         app.state.text_to_speech,
         MicrophoneRecorder(settings.voice_sample_rate, VoiceActivityDetector()),
     )
-    app.state.orchestrator = JarvisOrchestrator(app.state.llm, app.state.memory, app.state.event_bus)
+    app.state.tools = ToolRegistry()
+    app.state.tools.register(calculator_tool(Calculator()))
+    app.state.tools.register(time_tool(TimeService()))
+    app.state.tools.register(application_tool(ApplicationLauncher(settings)))
+    app.state.orchestrator = JarvisOrchestrator(
+        app.state.llm,
+        app.state.memory,
+        app.state.event_bus,
+        app.state.tools,
+        settings.max_agent_iterations,
+    )
     app.include_router(health_router, prefix=settings.api_prefix)
     app.include_router(command_router, prefix=settings.api_prefix)
     app.include_router(voice_router, prefix=settings.api_prefix)

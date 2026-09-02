@@ -8,4 +8,8 @@ Future capabilities remain isolated behind provider and tool boundaries: voice p
 
 The optional local microphone captures short PCM chunks and applies local VAD to find the phrase boundary. Audio is retained only in memory, then sent to the selected `SpeechToTextProvider`. `VoiceManager` emits lifecycle events, optionally verifies/removes the wake word, and exposes `TextToSpeechProvider` output as WAV bytes. The initial providers use Groq-compatible speech endpoints; replacing either provider does not affect the API or orchestrator.
 
+## Tool execution (Phase 3)
+
+The model requests tools through the provider's structured function-call output. `JarvisOrchestrator` limits execution to six iterations and only routes calls through `ToolRegistry`. Tools declare their JSON schema, permission level, confirmation requirement, and executor. The first tools are calculation, current time, and configured application aliases. No LLM-produced shell command can be executed.
+
 Security-sensitive system actions are intentionally not introduced in Phase 1.

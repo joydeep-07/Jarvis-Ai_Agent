@@ -32,6 +32,10 @@ Phases 1–2 provide a conversational backend with Groq integration, bounded con
 
 The React/Electron desktop client is scheduled for Phase 12; the existing frontend can still be installed independently with `npm install` from `frontend` when that phase begins.
 
+## Tools (Phase 3)
+
+JARVIS can use structured tools for arithmetic and current time. It can also launch applications only through aliases in `APPLICATION_COMMANDS`; it never accepts raw commands or paths from the model. Configure aliases in `backend/.env`, quoting executable paths that contain spaces, for example `APPLICATION_COMMANDS=chrome="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";vscode="C:\\Users\\you\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"`.
+
 ## Verification
 
 From `backend`, run `pytest` and `ruff check app tests`.

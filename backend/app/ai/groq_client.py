@@ -1,11 +1,13 @@
 """Groq implementation behind a small provider boundary."""
 
+import json
 from collections.abc import AsyncIterator
 from typing import Any, Protocol
 
 import httpx
 
 from app.config import Settings
+from app.schemas.tools import LLMCompletion, ToolCall
 
 
 class LLMProvider(Protocol):
@@ -14,6 +16,10 @@ class LLMProvider(Protocol):
     async def chat(self, messages: list[dict[str, str]]) -> str: ...
 
     async def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]: ...
+
+    async def complete(
+        self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]
+    ) -> LLMCompletion: ...
 
 
 class LLMProviderError(RuntimeError):
@@ -30,20 +36,39 @@ class GroqClient:
         self._owns_client = client is None
 
     async def chat(self, messages: list[dict[str, str]]) -> str:
+        completion = await self.complete(messages, [])
+        if not completion.content:
+            raise LLMProviderError("Groq returned an empty response.")
+        return completion.content
+
+    async def complete(
+        self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]
+    ) -> LLMCompletion:
         if not self._settings.groq_api_key:
             raise LLMProviderError("GROQ_API_KEY is not configured.")
         try:
             response = await self._client.post(
                 self.endpoint,
                 headers={"Authorization": f"Bearer {self._settings.groq_api_key}"},
-                json={"model": self._settings.groq_model, "messages": messages, "temperature": 0.4},
+                json={
+                    "model": self._settings.groq_model,
+                    "messages": messages,
+                    "temperature": 0.4,
+                    **({"tools": tools, "tool_choice": "auto"} if tools else {}),
+                },
             )
             response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
-            if not content:
-                raise LLMProviderError("Groq returned an empty response.")
-            return content
-        except (httpx.HTTPError, KeyError, IndexError, TypeError) as error:
+            message = response.json()["choices"][0]["message"]
+            calls = [
+                ToolCall(
+                    id=call["id"],
+                    name=call["function"]["name"],
+                    arguments=json.loads(call["function"]["arguments"]),
+                )
+                for call in message.get("tool_calls", [])
+            ]
+            return LLMCompletion(content=message.get("content"), tool_calls=calls)
+        except (httpx.HTTPError, KeyError, IndexError, TypeError, ValueError) as error:
             raise LLMProviderError("Unable to obtain a response from Groq.") from error
 
     async def stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:

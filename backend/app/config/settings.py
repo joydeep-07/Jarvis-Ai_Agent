@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     voice_store_recordings: bool = False
     tts_voice: str = "diana"
     tts_speed: float = 1.0
+    application_commands: str = ""
     data_dir: Path = Path("../data")
 
 
